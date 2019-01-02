@@ -45,3 +45,6 @@ Make you view model to inherit BaseViewModel and simplify code above:
         //third param - onExceptionAction, if you want to handle exception after suppressing
 ```
 
+# Sample
+
+Very small sample: https://github.com/AndreiMisiukevich/BaseViewModel/tree/master/BaseViewModel.Sample
