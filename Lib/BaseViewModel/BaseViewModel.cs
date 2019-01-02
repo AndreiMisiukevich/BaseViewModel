@@ -8,11 +8,11 @@ namespace BaseViewModel
 {
     public class BaseViewModel : INotifyPropertyChanged
     {
-        #region Properties
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         private readonly Lazy<ConcurrentDictionary<Type, object>> _lazyPropertiesMapping = new Lazy<ConcurrentDictionary<Type, object>>(() => new ConcurrentDictionary<Type, object>());
+
+        #region Properties
 
         protected T Get<T>(T defaultValue = default(T), [CallerMemberName] string key = null)
             => GetTypeDict<T>().TryGetValue(key, out T val)
@@ -37,21 +37,9 @@ namespace BaseViewModel
         protected void OnPropertyChanged([CallerMemberName] string key = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(key));
 
-        private ConcurrentDictionary<string, T> GetTypeDict<T>()
-        {
-            var type = typeof(T);
-            if (!_lazyPropertiesMapping.Value.TryGetValue(type, out object valDict))
-            {
-                _lazyPropertiesMapping.Value[type] = valDict = new ConcurrentDictionary<string, T>();
-            }
-            return valDict as ConcurrentDictionary<string, T>;
-        }
-
         #endregion
 
         #region Commands
-
-        private readonly Lazy<ConcurrentDictionary<string, ICommand>> _lazyCommandsMapping = new Lazy<ConcurrentDictionary<string, ICommand>>(() => new ConcurrentDictionary<string, ICommand>());
 
         /// <summary>
         /// Using: public ICommand YourCommand => RetCmd(() => new CustomCommand());
@@ -75,7 +63,7 @@ namespace BaseViewModel
         /// Using: public ICommand YourCommand => Cmd() ?? RegCmd(() => { ..action.. });
         /// </summary>
         protected ICommand Cmd([CallerMemberName]  string key = null)
-            => _lazyCommandsMapping.Value.TryGetValue(key, out ICommand command)
+            => GetTypeDict<ICommand>().TryGetValue(key, out ICommand command)
                 ? command
                 : null;
 
@@ -83,7 +71,7 @@ namespace BaseViewModel
         /// Using: public ICommand YourCommand => Cmd() ?? RegCmd(new CustomCommand());
         /// </summary>
         protected ICommand RegCmd(ICommand command, [CallerMemberName]  string key = null)
-            => _lazyCommandsMapping.Value[key] = command;
+            => GetTypeDict<ICommand>()[key] = command;
 
         /// <summary>
         /// Using: public ICommand YourCommand => Cmd() ?? RegCmd(() => new CustomCommand());
@@ -104,5 +92,15 @@ namespace BaseViewModel
             => RegCmd(p => action?.Invoke(), actionFrequency, shouldSuppressExceptions, onExceptionAction, canExecute, key);
 
         #endregion
+
+        private ConcurrentDictionary<string, T> GetTypeDict<T>()
+        {
+            var type = typeof(T);
+            if (!_lazyPropertiesMapping.Value.TryGetValue(type, out object valDict))
+            {
+                _lazyPropertiesMapping.Value[type] = valDict = new ConcurrentDictionary<string, T>();
+            }
+            return valDict as ConcurrentDictionary<string, T>;
+        }
     }
 }
