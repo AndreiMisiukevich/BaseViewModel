@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Collections.Concurrent;
 using System.Windows.Input;
 using System;
+using System.Collections.Generic;
 
 namespace BaseViewModel
 {
@@ -22,7 +23,7 @@ namespace BaseViewModel
         protected bool Set<T>(T value, bool shouldEqual = true, bool shouldRaisePropertyChanged = true, [CallerMemberName] string key = null)
         {
             var typeDict = GetTypeDict<T>();
-            if (shouldEqual && typeDict.TryGetValue(key, out T oldValue) && ((oldValue == null && value == null) || (oldValue?.Equals(value) ?? false)))
+            if (shouldEqual && typeDict.TryGetValue(key, out T oldValue) && EqualityComparer<T>.Default.Equals(oldValue, value))
             {
                 return false;
             }
